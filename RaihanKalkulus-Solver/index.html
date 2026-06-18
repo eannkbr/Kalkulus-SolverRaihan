@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Kalkulator Kalkulus Raihan</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#030712,#0f172a,#1e3a8a);
+color:white;
+min-height:100vh;
+padding:30px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+}
+
+.logo{
+text-align:center;
+margin-bottom:30px;
+}
+
+.logo h1{
+font-size:40px;
+color:#00d4ff;
+text-shadow:0 0 15px #00d4ff;
+}
+
+.logo p{
+color:#ddd;
+margin-top:10px;
+}
+
+.card{
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,.15);
+padding:25px;
+border-radius:20px;
+box-shadow:0 0 20px rgba(0,212,255,.25);
+margin-bottom:20px;
+}
+
+label{
+display:block;
+margin-bottom:8px;
+font-weight:bold;
+}
+
+input,select{
+width:100%;
+padding:14px;
+border:none;
+outline:none;
+border-radius:12px;
+background:#0f172a;
+color:white;
+margin-bottom:15px;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+font-size:18px;
+font-weight:bold;
+cursor:pointer;
+background:linear-gradient(90deg,#00d4ff,#0066ff);
+color:white;
+transition:.3s;
+}
+
+button:hover{
+transform:scale(1.02);
+box-shadow:0 0 20px #00d4ff;
+}
+
+.result{
+margin-top:20px;
+padding:15px;
+background:#081227;
+border-left:5px solid #00d4ff;
+border-radius:10px;
+font-size:18px;
+}
+
+#grafikFungsi,
+#grafikTurunan{
+height:400px;
+}
+
+.history-item{
+padding:10px;
+border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+h2{
+margin-bottom:15px;
+color:#00d4ff;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">
+<h1>🧮 Raihan Calculus Hub</h1>
+<p>Calculation • Analysis • Visualization</p>
+</div>
+
+<div class="card">
+
+<label>Masukkan Fungsi f(x)</label>
+
+<input
+type="text"
+id="fungsi"
+placeholder="Contoh: x^3+2*x^2-5*x">
+
+<label>Pilih Operasi</label>
+
+<select id="operasi">
+
+<option value="turunan">
+Turunan
+</option>
+
+<option value="limit">
+Limit x → 2
+</option>
+
+<option value="trapesium">
+Integral Numerik Trapesium
+</option>
+
+</select>
+
+<div id="trapesiumInput" style="display:none;">
+
+<label>Batas Bawah (a)</label>
+<input type="number" id="a" value="0">
+
+<label>Batas Atas (b)</label>
+<input type="number" id="b" value="2">
+
+<label>Jumlah Partisi (n)</label>
+<input type="number" id="n" value="100">
+
+</div>
+
+<button onclick="hitung()">
+Hitung
+</button>
+
+<div id="hasil" class="result">
+Menunggu Input...
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>📈 Grafik Fungsi</h2>
+
+<div id="grafikFungsi"></div>
+
+</div>
+
+<div class="card">
+
+<h2>📊 Grafik Turunan</h2>
+
+<div id="grafikTurunan"></div>
+
+</div>
+
+<div class="card">
+
+<h2>📝 Riwayat Perhitungan</h2>
+
+<div id="history"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let riwayat=[];
+
+document
+.getElementById("operasi")
+.addEventListener("change",()=>{
+
+if(
+document.getElementById("operasi").value
+==="trapesium"
+){
+
+document.getElementById(
+"trapesiumInput"
+).style.display="block";
+
+}
+else{
+
+document.getElementById(
+"trapesiumInput"
+).style.display="none";
+
+}
+
+});
+
+function tambahRiwayat(teks){
+
+riwayat.unshift(teks);
+
+let html="";
+
+riwayat.forEach(item=>{
+
+html+=`
+<div class="history-item">
+${item}
+</div>
+`;
+
+});
+
+document.getElementById(
+"history"
+).innerHTML=html;
+
+}
+
+function hitung(){
+
+let fungsi=
+document.getElementById("fungsi").value;
+
+let operasi=
+document.getElementById("operasi").value;
+
+try{
+
+if(operasi==="turunan"){
+
+let hasil=
+math.derivative(
+fungsi,
+"x"
+).toString();
+
+document.getElementById(
+"hasil"
+).innerHTML=
+"Turunan : "+hasil;
+
+gambarGrafik(
+fungsi,
+hasil
+);
+
+tambahRiwayat(
+"Turunan "+fungsi+
+" = "+hasil
+);
+
+}
+
+else if(
+operasi==="limit"
+){
+
+let hasil=
+math.evaluate(
+fungsi,
+{x:2}
+);
+
+document.getElementById(
+"hasil"
+).innerHTML=
+"Limit x → 2 = "+
+hasil;
+
+gambarGrafik(
+fungsi,
+math.derivative(
+fungsi,
+"x"
+).toString()
+);
+
+tambahRiwayat(
+"Limit "+fungsi+
+" = "+hasil
+);
+
+}
+
+else if(
+operasi==="trapesium"
+){
+
+let a=
+parseFloat(
+document.getElementById("a").value
+);
+
+let b=
+parseFloat(
+document.getElementById("b").value
+);
+
+let n=
+parseInt(
+document.getElementById("n").value
+);
+
+let hasil=
+trapezoid(
+fungsi,a,b,n
+);
+
+document.getElementById(
+"hasil"
+).innerHTML=
+"Integral Trapesium = "+
+hasil.toFixed(6);
+
+gambarGrafik(
+fungsi,
+math.derivative(
+fungsi,
+"x"
+).toString()
+);
+
+tambahRiwayat(
+"Integral Trapesium "+
+fungsi+
+" = "+
+hasil.toFixed(6)
+);
+
+}
+
+}
+catch(err){
+
+document.getElementById(
+"hasil"
+).innerHTML=
+"Input tidak valid";
+
+}
+
+}
+
+function trapezoid(
+fungsi,
+a,
+b,
+n
+){
+
+let h=(b-a)/n;
+
+let sum=0;
+
+for(
+let i=1;
+i<n;
+i++
+){
+
+sum+=math.evaluate(
+fungsi,
+{x:a+i*h}
+);
+
+}
+
+return h*(
+(
+math.evaluate(
+fungsi,
+{x:a}
+)
++
+math.evaluate(
+fungsi,
+{x:b}
+)
+)/2
++
+sum
+);
+
+}
+
+function gambarGrafik(
+fungsi,
+turunan
+){
+
+let x=[];
+let y1=[];
+let y2=[];
+
+for(
+let i=-10;
+i<=10;
+i+=0.2
+){
+
+x.push(i);
+
+try{
+
+y1.push(
+math.evaluate(
+fungsi,
+{x:i}
+)
+);
+
+}
+catch{
+
+y1.push(null);
+
+}
+
+try{
+
+y2.push(
+math.evaluate(
+turunan,
+{x:i}
+)
+);
+
+}
+catch{
+
+y2.push(null);
+
+}
+
+}
+
+Plotly.newPlot(
+"grafikFungsi",
+[
+{
+x:x,
+y:y1,
+type:"scatter",
+name:"f(x)"
+}
+],
+{
+paper_bgcolor:"transparent",
+plot_bgcolor:"transparent",
+font:{color:"white"},
+title:"Grafik Fungsi"
+}
+);
+
+Plotly.newPlot(
+"grafikTurunan",
+[
+{
+x:x,
+y:y2,
+type:"scatter",
+name:"f'(x)"
+}
+],
+{
+paper_bgcolor:"transparent",
+plot_bgcolor:"transparent",
+font:{color:"white"},
+title:"Grafik Turunan"
+}
+);
+
+}
+
+</script>
+
+</body>
+</html>
